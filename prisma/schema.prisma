@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String   
+  age       Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  months    Month[]  // Relation to Month
+}
+
+
+model Month {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  monthKey  String   // Example: "2026-03" (YYYY-MM format)
+  year      Int      // 2026
+  month     Int      // 3 (March)
+  status    String   @default("active") // "active", "archived"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Composite Unique constraint: Ekjon user-er specific year & month ektai thakbe
+  @@unique([userId, year, month])
+  @@unique([userId, monthKey])
+}
