@@ -36,6 +36,7 @@ model Month {
   updatedAt DateTime @updatedAt
 
   priorities Priority[] // Priority-এর সাথে রিলেশন
+  tasks      Task[]     // Task-এর সাথে রিলেশন
 
   // Composite Unique constraint: Ekjon user-er specific year & month ektai thakbe
   @@unique([userId, year, month])
@@ -70,4 +71,33 @@ model Milestone {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  monthId     String
+  month       Month        @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  
+  title       String
+  category    String?      // e.g., "Development", "Academic", "Health"
+  position    Int          @default(0)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  dailyChecks DailyCheck[] // DailyCheck-এর সাথে রিলেশন
+}
+
+model DailyCheck {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  date      String   // Format: "YYYY-MM-DD" (e.g., "2026-08-14")
+  completed Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([taskId, date]) // একই টাস্কের একই তারিখে ১টিই চেক রেকর্ড থাকবে
 }
