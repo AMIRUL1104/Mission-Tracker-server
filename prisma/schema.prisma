@@ -35,7 +35,39 @@ model Month {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  priorities Priority[] // Priority-এর সাথে রিলেশন
+
   // Composite Unique constraint: Ekjon user-er specific year & month ektai thakbe
   @@unique([userId, year, month])
   @@unique([userId, monthKey])
+}
+
+model Priority {
+  id          String      @id @default(uuid())
+  monthId     String
+  month       Month       @relation(fields: [monthId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  target      Int         @default(100) // Target completion percentage (e.g. 100%)
+  progress    Int         @default(0)   // Calculated or manual progress
+  position    Int         @default(0)   // Sorting order
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  milestones  Milestone[] // Milestone-এর সাথে রিলেশন
+}
+
+model Milestone {
+  id          String   @id @default(uuid())
+  priorityId  String
+  priority    Priority @relation(fields: [priorityId], references: [id], onDelete: Cascade)
+  
+  title       String
+  completed   Boolean  @default(false)
+  position    Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

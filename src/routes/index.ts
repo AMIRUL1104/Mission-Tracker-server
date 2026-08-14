@@ -2,7 +2,7 @@ import { Router } from "express";
 import users from "../modules/user/user.route.js";
 import authRoutes from "../modules/auth/auth.route.js";
 import monthRoutes from "../modules/months/month.routes.js";
-
+import priorityRoutes from "../modules/priorities/priority.route.js";
 // Initialize the main API router
 const router = Router();
 
@@ -25,6 +25,8 @@ router.use("/auth", authRoutes);
  * DELETE /months/:id
  */
 router.use("/months", monthRoutes);
+
+router.use("/priorities", priorityRoutes);
 
 // Export router to be used in main application
 export default router;
