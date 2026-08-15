@@ -1,7 +1,8 @@
 import prisma from "../../lib/prisma.js";
+import { StreakService } from "../streak/streak.service.js";
 
 export class TaskService {
-  // ১. নির্দিষ্ট মাসের সব টাস্ক ও তাদের DailyChecks নিয়ে আসা
+  // ১. নির্দিষ্ট মাসের সব টাস্ক ও তাদের DailyChecks নিয়ে আসা
   static async getTasksByMonth(userId: string, monthId: string) {
     // Check ownership of month
     const month = await prisma.month.findFirst({
@@ -49,12 +50,14 @@ export class TaskService {
       throw new Error("Task not found or unauthorized");
     }
 
-    return await prisma.task.delete({
+    const deletedTask = await prisma.task.delete({
       where: { id: taskId },
     });
+
+    return deletedTask;
   }
 
-  // ৪. DailyCheck Toggle (upsert ব্যবহার করে)
+  // ৪. DailyCheck Toggle (upsert ব্যবহার করে + Auto Streak Automation)
   static async toggleDailyCheck(
     userId: string,
     data: { taskId: string; date: string; completed: boolean },
@@ -69,7 +72,7 @@ export class TaskService {
     }
 
     // Upsert: রেকর্ড থাকলে আপডেট করবে, না থাকলে নতুন তৈরি করবে
-    return await prisma.dailyCheck.upsert({
+    const updatedCheck = await prisma.dailyCheck.upsert({
       where: {
         taskId_date: {
           taskId: data.taskId,
@@ -85,5 +88,39 @@ export class TaskService {
         completed: data.completed,
       },
     });
+
+    // 🔄 AUTOMATION: ওই নির্দিষ্ট তারিখের সব টাস্ক কমপ্লিট হলো কিনা চেক করে স্ট্রিক সিঙ্ক করা
+    await this.syncStreakAutomation(userId, task.monthId, data.date);
+
+    return updatedCheck;
+  }
+
+  // 🤖 Helper: অটোমেটিক স্ট্রিক টগল করার মেথড
+  private static async syncStreakAutomation(
+    userId: string,
+    monthId: string,
+    date: string,
+  ) {
+    // 해당 মাসের ইউজারের সব টাস্ক আনা
+    const userTasks = await prisma.task.findMany({
+      where: { monthId, month: { userId } },
+      include: {
+        dailyChecks: {
+          where: { date },
+        },
+      },
+    });
+
+    // টাস্ক না থাকলে কিছু করার প্রয়োজন নেই
+    if (userTasks.length === 0) return;
+
+    // চেক করা সব টাস্কের dailyCheck true আছে কিনা তা ভেরিফাই করা
+    const isAllCompleted = userTasks.every((t) => {
+      const check = t.dailyChecks[0];
+      return check && check.completed === true;
+    });
+
+    // সব টাস্ক কমপ্লিট হলে স্ট্রিক 'true', অন্যথায় 'false'
+    await StreakService.toggleStreak(userId, date, isAllCompleted);
   }
 }

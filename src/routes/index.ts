@@ -4,6 +4,7 @@ import authRoutes from "../modules/auth/auth.route.js";
 import monthRoutes from "../modules/months/month.routes.js";
 import priorityRoutes from "../modules/priorities/priority.route.js";
 import taskRoutes from "../modules/task/task.routes.js";
+import streakRoutes from "../modules/streak/streak.routes.js";
 // Initialize the main API router
 const router = Router();
 
@@ -30,6 +31,8 @@ router.use("/months", monthRoutes);
 router.use("/priorities", priorityRoutes);
 
 router.use("/tasks", taskRoutes);
+
+router.use("/streaks", streakRoutes);
 
 // Export router to be used in main application
 export default router;

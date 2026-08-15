@@ -9,24 +9,30 @@ datasource db {
   provider = "postgresql"
 }
 
+// ==========================================
+//  User Model
+// ==========================================
 model User {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  password  String   
+  password  String
   age       Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  months    Month[]  // Relation to Month
+  months    Month[]
+  streaks   Streak[] // Phase 7: Streak Relation
 }
 
-
+// ==========================================
+//  Month Model
+// ==========================================
 model Month {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   monthKey  String   // Example: "2026-03" (YYYY-MM format)
   year      Int      // 2026
   month     Int      // 3 (March)
@@ -35,69 +41,143 @@ model Month {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  priorities Priority[] // Priority-এর সাথে রিলেশন
-  tasks      Task[]     // Task-এর সাথে রিলেশন
+  priorities Priority[]
+  tasks      Task[]
+  academics  Academic[]      // Phase 8: Academic Relation
+  metrics    SuccessMetric[] // Phase 9: Success Metric Relation
 
-  // Composite Unique constraint: Ekjon user-er specific year & month ektai thakbe
   @@unique([userId, year, month])
   @@unique([userId, monthKey])
 }
 
+// ==========================================
+//  Priority Model
+// ==========================================
 model Priority {
   id          String      @id @default(uuid())
   monthId     String
   month       Month       @relation(fields: [monthId], references: [id], onDelete: Cascade)
-  
+
   title       String
   description String?
-  target      Int         @default(100) // Target completion percentage (e.g. 100%)
-  progress    Int         @default(0)   // Calculated or manual progress
-  position    Int         @default(0)   // Sorting order
-  
+  target      Int         @default(100)
+  progress    Int         @default(0)
+  position    Int         @default(0)
+
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  milestones  Milestone[] // Milestone-এর সাথে রিলেশন
+  milestones  Milestone[]
 }
 
 model Milestone {
   id          String   @id @default(uuid())
   priorityId  String
   priority    Priority @relation(fields: [priorityId], references: [id], onDelete: Cascade)
-  
+
   title       String
   completed   Boolean  @default(false)
   position    Int      @default(0)
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
+// ==========================================
+//  Task Model
+// ==========================================
 model Task {
   id          String       @id @default(uuid())
   monthId     String
   month       Month        @relation(fields: [monthId], references: [id], onDelete: Cascade)
-  
+
   title       String
-  category    String?      // e.g., "Development", "Academic", "Health"
+  category    String?
   position    Int          @default(0)
-  
+
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
-  dailyChecks DailyCheck[] // DailyCheck-এর সাথে রিলেশন
+  dailyChecks DailyCheck[]
 }
 
 model DailyCheck {
   id        String   @id @default(uuid())
   taskId    String
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  
-  date      String   // Format: "YYYY-MM-DD" (e.g., "2026-08-14")
+
+  date      String   // Format: "YYYY-MM-DD"
   completed Boolean  @default(false)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([taskId, date]) // একই টাস্কের একই তারিখে ১টিই চেক রেকর্ড থাকবে
+  @@unique([taskId, date])
+}
+
+// ==========================================
+//  Streak Model
+// ==========================================
+model Streak {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date      String   // Format: "YYYY-MM-DD" (e.g., "2026-08-14")
+  completed Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date]) // একই ইউজারের একই তারিখে একটিই স্ট্রিক এন্টি থাকবে
+}
+
+// ==========================================
+//  Academic Tracker Models
+// ==========================================
+model Academic {
+  id            String         @id @default(uuid())
+  monthId       String
+  month         Month          @relation(fields: [monthId], references: [id], onDelete: Cascade)
+
+  subject       String         // Subject Name (e.g., "Software Engineering")
+  targetHours   Float          @default(0) // Monthly Target Hours
+  position      Int            @default(0)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  weeklyLogs    AcademicWeek[] // Weekly Hours Breakdown
+}
+
+model AcademicWeek {
+  id          String   @id @default(uuid())
+  academicId  String
+  academic    Academic @relation(fields: [academicId], references: [id], onDelete: Cascade)
+
+  weekNumber  Int      // 1, 2, 3, 4
+  hoursSpent  Float    @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([academicId, weekNumber]) // একই সাবজেক্টের এক সপ্তাহের একটিই লগ থাকবে
+}
+
+// ==========================================
+//  Success Metrics Model
+// ==========================================
+model SuccessMetric {
+  id        String   @id @default(uuid())
+  monthId   String
+  month     Month    @relation(fields: [monthId], references: [id], onDelete: Cascade)
+
+  name      String   // Metric Name (e.g., "Books Read", "Code Commits")
+  value     Float    @default(0) // Current Achieved Value
+  target    Float    @default(0) // Target Value
+  unit      String?  // Optional Unit (e.g., "hours", "books", "pages")
+  position  Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
