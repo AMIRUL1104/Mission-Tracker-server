@@ -4,7 +4,7 @@ import routes from "./routes/index.js";
 import { errorMiddleware } from "./middleware/error.middleware.js";
 const app = express();
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
 }));
 app.use(express.json());
 app.get("/", (_req, res) => {
