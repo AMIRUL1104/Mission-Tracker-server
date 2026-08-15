@@ -9,12 +9,10 @@ import metricRoutes from "../modules/metric/metric.route.js";
 import overviewRoutes from "../modules/overview/overview.route.js";
 // Initialize the main API router
 const router = Router();
-
 /**
  * Auth Routes
  */
 router.use("/auth", authRoutes);
-
 /**
  * Month Routes
  * Endpoints:
@@ -24,18 +22,12 @@ router.use("/auth", authRoutes);
  * DELETE /months/:id
  */
 router.use("/months", monthRoutes);
-
 router.use("/priorities", priorityRoutes);
-
 router.use("/tasks", taskRoutes);
-
 router.use("/streaks", streakRoutes);
-
 router.use("/academics", academicRoutes);
-
 router.use("/metrics", metricRoutes);
-
 router.use("/overview", overviewRoutes);
-
 // Export router to be used in main application
 export default router;
+//# sourceMappingURL=index.js.map
