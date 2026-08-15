@@ -7,6 +7,7 @@ import taskRoutes from "../modules/task/task.routes.js";
 import streakRoutes from "../modules/streak/streak.routes.js";
 import academicRoutes from "../modules/academic/academic.routes.js";
 import metricRoutes from "../modules/metric/metric.route.js";
+import overviewRoutes from "../modules/overview/overview.route.js";
 // Initialize the main API router
 const router = Router();
 
@@ -39,6 +40,8 @@ router.use("/streaks", streakRoutes);
 router.use("/academics", academicRoutes);
 
 router.use("/metrics", metricRoutes);
+
+router.use("/overview", overviewRoutes);
 
 // Export router to be used in main application
 export default router;
